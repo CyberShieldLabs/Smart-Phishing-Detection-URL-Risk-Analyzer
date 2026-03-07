@@ -6,114 +6,240 @@ A web-based system that analyzes URLs and evaluates potential phishing risks to 
 
 ## Repository Setup & Contribution Guidelines
 
-To maintain proper collaboration and avoid conflicts, all team members must follow the guidelines below.
+TThis guide explains how to **pull the project, create your own branch, and push your work safely** without affecting the main code.
 
 ---
 
-## 1. Clone the Repository
+# 1. Create a GitHub Personal Access Token
 
-First, clone the repository to your local machine.
+GitHub no longer allows password authentication for Git.
+
+## Step 1
+Open:
+
+```
+
+[https://github.com/settings/tokens](https://github.com/settings/tokens)
+
+```
+
+## Step 2
+Click:
+
+```
+
+Generate new token → Fine-grained token
+
+```
+
+## Step 3
+Settings:
+
+```
+
+Repository access → Select repository
+Smart-Phishing-Detection-URL-Risk-Analyzer
+
+```
+
+Permissions:
+
+```
+
+Contents → Read and Write
+Metadata → Read
+
+```
+
+## Step 4
+Generate token and **copy it immediately**.
+
+Example token:
+
+```
+
+github_pat_xxxxxxxxxxxxxxxxx
+
+````
+
+---
+
+# 2. Clone the Repository
+
+Open terminal and run:
 
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone https://github.com/samarjeets10/Smart-Phishing-Detection-URL-Risk-Analyzer.git
+````
+
+Enter:
+
+```
+Username: <your github username>
+Password: <paste token here>
+```
+
+Go inside the project folder:
+
+```bash
+cd Smart-Phishing-Detection-URL-Risk-Analyzer
 ```
 
 ---
 
-## 2. Main Branch Policy
+# 3. Always Pull Latest Code
 
-- The **main branch** is the stable and primary branch of the project.
-- **Do NOT push any changes directly to the `main` branch.**
+Before starting work run:
+
+```bash
+git checkout main
+git pull origin main
+```
+
+This keeps your project updated.
 
 ---
 
-## 3. Create Your Own Branch
+# 4. Create Your Own Branch
 
-Before starting any work, create a new branch.
+Never work directly on `main`.
+
+Create your personal branch:
 
 ```bash
-git checkout -b your-branch-name
+git checkout -b yourname-feature
 ```
 
 Example:
 
 ```bash
-git checkout -b feature-url-analyzer
+git checkout -b rahul-feature
+```
+
+Check branch:
+
+```bash
+git branch
 ```
 
 ---
 
-## 4. Push Changes to Your Branch
+# 5. Work on the Code
 
-After completing your work, commit and push the changes to your branch.
+Edit files or add new scripts.
+
+Check modified files:
+
+```bash
+git status
+```
+
+---
+
+# 6. Add Files to Git
 
 ```bash
 git add .
-git commit -m "Describe your changes"
-git push origin your-branch-name
 ```
 
----
-
-## 5. Inform Before Merging
-
-Before merging your branch:
-
-- Inform the team members.
-- Ensure the code is tested.
-- Confirm that it does not break existing features.
-
----
-
-## 6. Do Not Push Directly to Main
-
-Avoid running the following command:
+Or specific file:
 
 ```bash
-git push origin main
+git add filename.py
 ```
-
-All updates must go through **separate branches**.
 
 ---
 
-## 7. Avoid Merge Conflicts
+# 7. Commit Your Changes
 
-To reduce conflicts:
+```bash
+git commit -m "Added phishing detection feature"
+```
 
-- Always pull the latest changes before starting work.
+---
+
+# 8. Push Your Branch
+
+Push your branch to GitHub:
+
+```bash
+git push origin yourname-feature
+```
+
+Example:
+
+```bash
+git push origin rahul-feature
+```
+
+---
+
+# 9. Create a Pull Request
+
+Go to the repository on GitHub.
+
+You will see:
+
+```
+Compare & Pull Request
+```
+
+Create a pull request:
+
+```
+base: main
+compare: your branch
+```
+
+Admin will review and merge your code.
+
+---
+
+
+# Useful Commands
+
+Check status:
+
+```bash
+git status
+```
+
+View branches:
+
+```bash
+git branch
+```
+
+Switch branch:
+
+```bash
+git checkout branch-name
+```
+
+Update project:
 
 ```bash
 git pull origin main
 ```
 
-- Work on different modules when possible.
-- Commit changes frequently with clear messages.
-
 ---
 
-## 8. Commit Message Guidelines
-
-Use meaningful commit messages.
-
-Good examples:
+# Basic Workflow
 
 ```
-Add URL pattern detection logic
-Implement risk scoring module
-Fix frontend input validation
+git clone repo
+cd project
+git pull origin main
+git checkout -b your-branch
+(edit code)
+git add .
+git commit -m "message"
+git push origin your-branch
+create pull request
 ```
 
-Avoid messages like:
+Following this workflow ensures **safe collaboration without breaking the main project.**
 
-```
-update
-changes
-fix
-```
-
----
 
 ## Team Collaboration Rules
 
