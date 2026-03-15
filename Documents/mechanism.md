@@ -11,16 +11,22 @@
 
 ```mermaid
 flowchart TD
-    A[User Enters URL] --> B[Input Validation Module]
-    B --> C[URL Feature Extraction Engine]
-    C --> D[Phishing Detection Engine]
-    D --> E[Threat Intelligence Check]
-    E --> F[Risk Scoring System]
-    F --> G[Result Visualization Dashboard]
+    A[User Enters URL] --> B[Input Validation]
+    B --> C[Feature Extraction Engine]
+
+    C --> D[Machine Learning Detection Engine]
+    C --> E[Threat Intelligence Check]
+
+    D --> F[Prediction Score]
+    E --> G[Reputation Result]
+
+    F --> H[Final Risk Evaluation]
+    G --> H
+
+    H --> I[Risk Score Generation]
+    I --> J[Result Visualization Dashboard]
+
 ```
-
----
-
 
 
 # 1. User Input Stage
