@@ -83,7 +83,7 @@ The selected features focus on:
 
 | Feature | Description |
 |--------|------------|
-| IsHTTPS | 1 if HTTPS is used, else 0 |
+| IsHTTPS | 1 if HTTPS is used, else 0 |  (Training-Serving Skew)
 
 ---
 
