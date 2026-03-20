@@ -1,124 +1,143 @@
-#  Main URL Features That Indicate Phishing
-
-Most research divides features into **3 categories**.
+# Feature Extraction for URL-Based Phishing Detection Model
 
 ---
 
-## 1. Lexical Features (URL text structure)
+## Overview
 
-These are **very important for ML models**.
+This model uses **URL-based features only**, making it lightweight, fast, and suitable for real-time phishing detection.
 
-Examples:
-
-* URL length
-* Number of dots
-* Number of subdomains
-* Presence of **@ symbol**
-* Presence of **- (hyphen)** in domain
-* Number of digits in URL
-* Suspicious keywords
-
-  * login
-  * verify
-  * secure
-  * update
-* Repeated characters
-* Encoding (`%20`, `%3A`)
-
-Example phishing URL:
-
-```
-https://paypal-login-secure.verify-user.ru/account
-```
-
-Problems:
-
-* too many subdomains
-* suspicious words
-* wrong TLD
-
-Research shows lexical features alone can detect many phishing URLs. ([ScienceDirect][5])
+The selected features focus on:
+- URL structure
+- Character patterns
+- Suspicious symbols
+- Security indicators
 
 ---
 
-## 2. Host-Based Features
-
-These require **domain lookup / DNS analysis**.
-
-Examples:
-
-* Domain age
-* WHOIS registration
-* DNS records
-* IP address instead of domain
-* Hosting country
-* Domain expiration
-
-Example:
-
-```
-http://192.168.2.44/login
-```
-
-Using IP instead of domain is suspicious.
+## Feature Categories
 
 ---
 
-## 3. Statistical / Structural Features
+## 1. Length-Based Features
 
-These analyze **patterns in URL structure**.
-
-Examples:
-
-* Token count
-* Entropy of characters
-* TLD type (.xyz, .top, .ru often used)
-* URL path depth
-* ratio of digits to letters
+| Feature | Description |
+|--------|------------|
+| URLLength | Total length of the full URL |
+| DomainLength | Length of the domain name |
+| TLDLength | Length of the top-level domain |
 
 ---
 
-## 4. Sum other Features
-| # | Feature Name | Category | Description | Example |
-|---|--------------|----------|-------------|---------|
-| 1 | URL Length | Lexical | Total length of the URL string | https://secure-paypal-login.com/verify |
-| 2 | Domain Length | Lexical | Length of the domain name | paypal-secure-login.com |
-| 3 | Path Length | Structural | Length of path after domain | /account/verify/login |
-| 4 | Number of Dots | Lexical | Count of '.' in URL | login.paypal.secure.verify.ru |
-| 5 | Number of Hyphens | Lexical | '-' characters in domain | paypal-login-security.com |
-| 6 | Number of Subdomains | Structural | Subdomains before main domain | login.secure.verify.example.com |
-| 7 | Number of Digits | Lexical | Count of numeric characters | login123-secure.com |
-| 8 | Presence of @ Symbol | Lexical | '@' can hide real domain | http://paypal.com@malicious.ru |
-| 9 | Presence of IP Address | Host | Domain replaced with IP | http://192.168.1.1/login |
-|10 | HTTPS Usage | Security | Whether HTTPS is used | https://bank-login.com |
-|11 | Suspicious Keywords | Lexical | Words like login, verify, secure | paypal-verify-account.com |
-|12 | URL Entropy | Statistical | Randomness of characters | xj3kq-secure-login.top |
-|13 | Token Count | Structural | Number of tokens in URL | /account/verify/update |
-|14 | Longest Token Length | Lexical | Length of longest word in URL | secureloginverification |
-|15 | Shortest Token Length | Lexical | Length of smallest token | a |
-|16 | Number of Parameters | Structural | Query parameters count | ?id=123&session=abc |
-|17 | Presence of Redirect | Structural | URL contains redirect patterns | redirect=login |
-|18 | Presence of Encoding | Lexical | Encoded characters | %20 %3A %2F |
-|19 | Special Character Count | Lexical | Count of symbols | ! $ % & |
-|20 | Digit Ratio | Statistical | Ratio of digits to letters | login123456.com |
-|21 | Uppercase Ratio | Statistical | Ratio of uppercase letters | LOGINverify.com |
-|22 | Path Depth | Structural | Number of '/' segments | /a/b/c/login |
-|23 | TLD Type | Domain | Top-level domain used | .xyz .ru .top |
-|24 | Domain Age | Host | Age of domain registration | newly registered domain |
-|25 | Domain Expiration | Host | Time until domain expiry | 1 month left |
-|26 | DNS Record Presence | Host | Whether DNS exists | valid DNS entry |
-|27 | WHOIS Availability | Host | Domain WHOIS information | hidden WHOIS |
-|28 | Registrar Reputation | Host | Known suspicious registrar | cheap unknown registrar |
-|29 | URL Shortener | Lexical | Shortened URLs used | bit.ly/xyz123 |
-|30 | Repeated Characters | Lexical | Repeated letters or numbers | secureeee-login.com |
-|31 | Unusual Port | Structural | Non-standard port numbers | :8080 :4444 |
-|32 | File Extension | Structural | Suspicious file extension | login.php |
-|33 | Domain Entropy | Statistical | Random domain patterns | xkqz-login-secure.top |
-|34 | Keyword Density | Lexical | Frequency of phishing keywords | verify-login-account |
-|35 | Brand Name Presence | Lexical | Brand impersonation | paypal-login-security |
-|36 | URL Complexity Score | Statistical | Combined complexity measure | long complex phishing URL |
+## 2. Domain-Based Features
+
+| Feature | Description |
+|--------|------------|
+| IsDomainIP | 1 if domain is IP address, else 0 |
+| NoOfSubDomain | Number of subdomains |
+
+---
+
+## 3. Character & Pattern Features
+
+| Feature | Description |
+|--------|------------|
+| CharContinuationRate | Measures repeated/continuous characters |
+| URLCharProb | Probability score of character randomness |
+
+---
+
+## 4. Obfuscation Features
+
+| Feature | Description |
+|--------|------------|
+| HasObfuscation | 1 if obfuscation exists |
+| NoOfObfuscatedChar | Count of obfuscated characters |
+| ObfuscationRatio | Ratio of obfuscated characters |
+
+---
+
+## 5. Letter & Digit Distribution
+
+| Feature | Description |
+|--------|------------|
+| NoOfLettersInURL | Count of letters |
+| LetterRatioInURL | Ratio of letters |
+| NoOfDegitsInURL | Count of digits |
+| DegitRatioInURL | Ratio of digits |
+
+---
+
+## 6. Special Character Features
+
+| Feature | Description |
+|--------|------------|
+| NoOfEqualsInURL | Count of '=' |
+| NoOfQMarkInURL | Count of '?' |
+| NoOfAmpersandInURL | Count of '&' |
+| NoOfOtherSpecialCharsInURL | Count of other symbols |
+| SpacialCharRatioInURL | Ratio of special characters |
+
+---
+
+## 7. Security Feature
+
+| Feature | Description |
+|--------|------------|
+| IsHTTPS | 1 if HTTPS is used, else 0 |
+
+---
+
+## 8. Keyword-Based Indicators
+
+| Feature | Description |
+|--------|------------|
+| Bank | 1 if banking-related keyword present |
+| Pay | 1 if payment keyword present |
+| Crypto | 1 if crypto-related keyword present |
+
+---
+
+## Output Label
+
+| Label | Meaning |
+|------|--------|
+| 0 | Legitimate URL |
+| 1 | Phishing URL |
+
+---
+
+## Example Input & Output Format
+
+Each row represents one URL converted into numerical features.
+
+```text
+URLLength  DomainLength  IsDomainIP  CharContinuationRate  URLCharProb  TLDLength  NoOfSubDomain  HasObfuscation  NoOfObfuscatedChar  ObfuscationRatio  NoOfLettersInURL  LetterRatioInURL  NoOfDegitsInURL  DegitRatioInURL  NoOfEqualsInURL  NoOfQMarkInURL  NoOfAmpersandInURL  NoOfOtherSpecialCharsInURL  SpacialCharRatioInURL  IsHTTPS  Bank  Pay  Crypto  label
+
+19  13  0  1  0.082002449  3  1  0  0  0  7  0.368  0  0  0  0  0  1  0.053  0  0  0  0  0
+26  19  0  1  0.060233585  2  1  0  0  0  13  0.5  0  0  0  0  0  1  0.038  1  0  0  0  1
+````
+
+---
 
 
+## Summary
+
+* Total Features Used: **23**
+* Output: Binary classification (0 or 1)
+* Format: Structured numerical dataset
+
+---
+
+## Conclusion
+
+This feature extraction approach ensures:
+
+* Fast processing
+* Real-time usability
+* Clear and structured input for ML models
+
+It forms the backbone of the phishing detection system.
+
+---
 
 
-##### © 2026 Kunal Harshad Patil
