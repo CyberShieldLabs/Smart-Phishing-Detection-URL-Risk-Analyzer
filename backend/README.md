@@ -57,20 +57,145 @@ backend/
 
 # 🔥 Module Responsibilities
 
+## 🔹 validator.py (✅ Completed)
+
+### 📌 Purpose
+Handles input validation and normalization before passing data to the pipeline.
+
+### ✅ Responsibilities
+- Accept JSON input from frontend/API
+- Validate URL format
+- Ensure only `http://` or `https://` URLs are allowed
+- Normalize URL by ensuring `www` is present
+- Return clean URL for further processing
+
 ---
 
-## 🔹 validator.py
+### 🔄 Flow
 
-* Accept JSON input
-* Validate and clean URL
+```mermaid
+flowchart LR
+A[User Input URL] --> B{Starts with http/https?}
+
+B -- No --> X[Reject Request ❌]
+
+B -- Yes --> C{Has www?}
+
+C -- No --> D[Add www]
+
+C -- Yes --> E[Keep Same]
+
+D --> F[Normalized URL]
+E --> F
+
+F --> G[Feature Extraction]
+```
 
 ---
 
-## 🔹 feature_extractor.py
+### 🧠 Key Design Decision
 
-* Convert URL → feature vector
-* (Your 23 features)
+* We **do NOT auto-add protocol (http/https)** → must be provided
+* We **only normalize `www`**
+* Keeps behavior predictable and secure
 
+
+
+
+
+*
+---
+
+## 🔹 feature_extractor.py (⚙️ Need to Work hire)
+
+### 📌 Purpose
+- Convert validated URL → structured feature vector for ML model
+
+---
+
+### 📊 Selected Features (Exact Order)
+
+```
+
+URLLength
+DomainLength
+IsDomainIP
+CharContinuationRate
+URLCharProb
+TLDLength
+NoOfSubDomain
+HasObfuscation
+NoOfObfuscatedChar
+ObfuscationRatio
+NoOfLettersInURL
+LetterRatioInURL
+NoOfDegitsInURL
+DegitRatioInURL
+NoOfEqualsInURL
+NoOfQMarkInURL
+NoOfAmpersandInURL
+NoOfOtherSpecialCharsInURL
+SpacialCharRatioInURL
+IsHTTPS
+Bank
+Pay
+Crypto
+
+```
+
+---
+
+### 🧪 Verification Strategy
+
+To ensure correctness, we verify our feature extraction against the dataset:
+
+- Extract features using our code
+- Compare with dataset’s precomputed values
+- Match logic exactly
+
+---
+
+### 📁 Test Script
+
+- Location: `tests/test_compare.py`
+- Purpose:
+  - Take dataset rows
+  - Recalculate features
+  - Compare **Expected vs Generated**
+
+---
+
+### ⚠️ Current Status
+
+- Feature extraction is **working but not fully aligned**
+- Some mismatches still exist due to:
+  - Dataset-specific calculation logic
+  - Hidden/complex feature definitions
+
+---
+
+### 🧠 Important Note
+
+```
+
+Model is trained on dataset → Feature logic MUST match dataset exactly
+
+```
+
+If not:
+
+```
+
+Correct Model + Wrong Features = Wrong Predictions ❌
+
+```
+
+---
+
+### 🎯 Goal
+
+- Achieve **100% feature match with dataset**
+- Ensure reliable ML predictions
 ---
 
 ## 🔹 ml_engine.py

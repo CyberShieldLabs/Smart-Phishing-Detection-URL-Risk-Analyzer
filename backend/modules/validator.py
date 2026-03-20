@@ -1,41 +1,127 @@
 from urllib.parse import urlparse
 
-def validate_url_input(request_json):
 
-    # 1. Check if "url" key exists in JSON
-    if "url" not in request_json:
+def validate_url_input(data: dict):
+    """
+    Validation + Normalization Module
+
+    Output format (STRICT for pipeline):
+
+    Success:
+    {
+        "status": "success",
+        "clean_url": "https://www.example.com"
+    }
+
+    Error:
+    {
+        "status": "error",
+        "message": "error message"
+    }
+    """
+
+    # ---------------------------
+    # 1. Check JSON format
+    # ---------------------------
+    if not isinstance(data, dict):
         return {
             "status": "error",
-            "message": "URL field missing"
+            "message": "Invalid input format (JSON required)"
         }
 
-    # 2. Get URL and remove extra spaces
-    url = request_json["url"].strip()
+    url = data.get("url")
 
-    # 3. Check if empty
-    if not url:
+    # ---------------------------
+    # 2. Basic validation
+    # ---------------------------
+    if not url or not isinstance(url, str):
+        return {
+            "status": "error",
+            "message": "URL must be a non-empty string"
+        }
+
+    url = url.strip()
+
+    if url == "":
         return {
             "status": "error",
             "message": "URL cannot be empty"
         }
 
-    # 4. Add https if missing
-    if not url.startswith(("http://", "https://")):
-        url = "https://" + url
+    if " " in url:
+        return {
+            "status": "error",
+            "message": "URL must not contain spaces"
+        }
 
-    # 5. Parse URL safely
-    parsed = urlparse(url)
-    domain = parsed.netloc
+    # ---------------------------
+    # 3. Protocol validation
+    # ---------------------------
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return {
+            "status": "error",
+            "message": "Only http:// or https:// URLs are allowed"
+        }
 
-    # 6. Basic domain validation
-    if not domain or "." not in domain:
+    # ---------------------------
+    # 4. Parse URL
+    # ---------------------------
+    try:
+        parsed = urlparse(url)
+    except Exception:
         return {
             "status": "error",
             "message": "Invalid URL format"
         }
 
-    # 7. Return clean URL
+    if not parsed.netloc:
+        return {
+            "status": "error",
+            "message": "Invalid domain"
+        }
+
+    netloc = parsed.netloc
+
+    # ---------------------------
+    # 5. Domain validation
+    # ---------------------------
+    if "." not in netloc:
+        return {
+            "status": "error",
+            "message": "Invalid domain (missing TLD)"
+        }
+
+    if netloc.startswith(".") or netloc.endswith("."):
+        return {
+            "status": "error",
+            "message": "Invalid domain format"
+        }
+
+    if ".." in netloc:
+        return {
+            "status": "error",
+            "message": "Invalid domain (double dots)"
+        }
+
+    # ---------------------------
+    # 6. Add www if missing
+    # ---------------------------
+    if not netloc.lower().startswith("www."):
+        netloc = "www." + netloc
+
+    # ---------------------------
+    # 7. Rebuild URL
+    # ---------------------------
+    scheme = parsed.scheme
+    path = parsed.path or ""
+    query = f"?{parsed.query}" if parsed.query else ""
+
+    clean_url = f"{scheme}://{netloc}{path}{query}"
+
+    # ---------------------------
+    # 8. Return success
+    # ---------------------------
     return {
         "status": "success",
-        "clean_url": url
+        "clean_url": clean_url
     }
