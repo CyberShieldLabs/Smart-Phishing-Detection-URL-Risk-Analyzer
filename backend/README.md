@@ -73,24 +73,23 @@ Handles input validation and normalization before passing data to the pipeline.
 
 ### 🔄 Flow
 
+
 ```mermaid
 flowchart LR
 A[User Input URL] --> B{Starts with http/https?}
 
 B -- No --> X[Reject Request ❌]
-
 B -- Yes --> C{Has www?}
 
 C -- No --> D[Add www]
-
 C -- Yes --> E[Keep Same]
 
 D --> F[Normalized URL]
 E --> F
 
 F --> G[Feature Extraction]
-```
 
+```
 ---
 
 ### 🧠 Key Design Decision
@@ -99,11 +98,6 @@ F --> G[Feature Extraction]
 * We **only normalize `www`**
 * Keeps behavior predictable and secure
 
-
-
-
-
-*
 ---
 
 ## 🔹 feature_extractor.py (⚙️ Need to Work hire)
