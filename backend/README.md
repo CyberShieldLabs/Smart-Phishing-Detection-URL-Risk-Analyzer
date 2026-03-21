@@ -24,6 +24,12 @@ backend/
 │   ├── phishing_url_model.pkl
 │   ├── feature_columns.pkl
 │
+|── data/
+│   ├── threat_db.txt   # cleaned domain list for threat intel
+|
+|── scripts/
+│   ├── update_db.py    # auto-update script to update threat_db to ensure database update syc
+|
 ├── config/
 │   ├── settings.py                 # API keys, thresholds
 │
