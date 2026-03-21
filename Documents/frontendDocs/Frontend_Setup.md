@@ -627,6 +627,10 @@ npm run dev
 # http://localhost:5173
 ```
 
+<<<<<<< HEAD
+---
+=======
 ---
 
 *© 2026 Samarjeet Sambhaji Sabale — Smart Phishing Detection & URL Risk Analyzer*
+>>>>>>> 0489b9bf9c8af51390d0410de6722ac172bf1334
