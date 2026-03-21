@@ -16,6 +16,7 @@ def predict():
 
     # If error → stop pipeline
     if result["status"] == "error":
+
         return jsonify(result)
 
     # If success → continue (next step later)
