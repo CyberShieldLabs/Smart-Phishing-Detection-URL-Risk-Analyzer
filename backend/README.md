@@ -105,6 +105,13 @@ F --> G[Feature Extraction]
 ### 📌 Purpose
 - Convert validated URL → structured feature vector for ML model
 
+### ⚠️ Important Design Note
+
+Feature extractor serves **dual purpose**:
+
+1. Generate feature vector → for ML model  
+2. Extract domain → for Threat Intelligence module  
+
 ---
 
 ### 📊 Selected Features (Exact Order)
@@ -202,17 +209,113 @@ Correct Model + Wrong Features = Wrong Predictions ❌
 
 ---
 
-## 🔹 threat_intel.py
+## 🔹 threat_intel.py (⚙️ In Progress)
 
-* Check URL using:
+### 📌 Purpose
+- Check if a given URL/domain is already known as **malicious**
+- Uses **open-source threat intelligence feeds**
+- Works **offline using locally stored database**
 
-  * OpenPhish
-  * URLhaus
-  * PhishTank
-* Return:
+---
 
-  * malicious / safe
-  * source confidence
+### 🧠 Data Sources (Free & Open)
+
+- OpenPhish → phishing URLs  
+- URLhaus → malware URLs  
+
+---
+
+### ⚙️ Design Approach
+
+Instead of calling APIs in real-time:
+
+```
+
+Download feeds → store locally → fast lookup
+
+```
+
+---
+
+### 📁 Database Structure
+
+```
+
+backend/
+│
+├── data/
+│   ├── threat_db.txt   ← cleaned domain list
+│
+├── scripts/
+│   ├── update_db.py    ← auto-update script
+
+```
+
+---
+
+### 🔄 Update Mechanism
+
+- Data is downloaded from open sources
+- URLs are processed to extract **only domain**
+- Duplicate entries are removed
+- Stored as a clean domain list
+
+---
+
+### ⏱️ Automation
+
+Database can be updated:
+
+- Manually → run script  
+- Automatically → cron job (recommended)
+
+Example:
+```
+
+0 3 * * * python scripts/update_db.py
+
+```
+
+---
+
+### 🔍 Detection Logic
+
+```
+
+Input → Domain
+Check → Local Database (set lookup)
+Output → Malicious / Safe
+
+````
+
+---
+
+### 📤 Output Example
+
+```json
+{
+  "is_malicious": true,
+  "source": "local_db",
+  "type": "phishing"
+}
+````
+
+---
+
+### ⚡ Performance
+
+* Uses Python `set()` for lookup
+* O(1) time complexity
+* Very fast and scalable
+
+---
+
+### 🎯 Goal
+
+* Provide **real-world threat intelligence layer**
+* Enhance ML model predictions
+* Detect already known malicious domains instantly
+
 
 ---
 
