@@ -5,15 +5,7 @@ from modules.threat_intel import check_threat
 
 def process_url(data: dict):
     """
-    Main pipeline function
-
-    Input:
-        {
-            "url": "https://example.com"
-        }
-
-    Output:
-        JSON result
+    Pipeline with full debug visibility
     """
 
     # ---------------------------
@@ -35,6 +27,19 @@ def process_url(data: dict):
     domain = extractor_output["domain"]
 
     # ---------------------------
+    # DEBUG: ML INPUT (future)
+    # ---------------------------
+    print("\n=== ML INPUT (FEATURES) ===")
+    print("Feature Count:", len(features))
+    print("Features:", features)
+
+    # ---------------------------
+    # DEBUG: THREAT INTEL INPUT
+    # ---------------------------
+    print("\n=== THREAT INTEL INPUT ===")
+    print("Domain:", domain)
+
+    # ---------------------------
     # STEP 3: Threat Intelligence
     # ---------------------------
     threat_output = check_threat({
@@ -42,14 +47,12 @@ def process_url(data: dict):
     })
 
     # ---------------------------
-    # DEBUG PRINT (for now)
+    # DEBUG: THREAT INTEL OUTPUT
     # ---------------------------
-    print("\n=== PIPELINE DEBUG ===")
-    print("Clean URL:", clean_url)
-    print("Domain:", domain)
-    print("Features:", features)
-    print("Threat Intel:", threat_output)
-    print("======================\n")
+    print("\n=== THREAT INTEL OUTPUT ===")
+    print(threat_output)
+
+    print("\n============================\n")
 
     # ---------------------------
     # FINAL OUTPUT (TEMP)
@@ -59,5 +62,6 @@ def process_url(data: dict):
         "clean_url": clean_url,
         "domain": domain,
         "features": features,
+        "feature_count": len(features),
         "threat_intel": threat_output
     }
