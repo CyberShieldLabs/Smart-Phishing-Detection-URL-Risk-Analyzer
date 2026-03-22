@@ -488,13 +488,15 @@ malware-download.xyz
 ### 🔄 Working Flow
 
 ```mermaid
+
 flowchart LR
 A[Download Feeds] --> B[Extract Domains]
-B --> C[Normalize (lowercase)]
+B --> C[Normalize lowercase]
 C --> D[Remove Duplicates]
 D --> E[Write temp file]
 E --> F[Replace final DB safely]
-````
+
+```
 
 ---
 
