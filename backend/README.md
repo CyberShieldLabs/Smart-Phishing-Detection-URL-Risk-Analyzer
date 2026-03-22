@@ -703,18 +703,178 @@ Evaluator can later include:
 
 ---
 
-## 🔹 scorer.py
+## 🔹 scorer.py (⚙️ Risk Score Generation Engine)
 
-* Generate:
-
-  * Risk score (0–100)
-  * Risk level:
-
-    * Low
-    * Medium
-    * High
+### 📌 Purpose
+- Generate final **risk score (0–100)** based on:
+  - ML prediction
+  - Threat Intelligence result
+- Produce **user-facing output** for frontend
 
 ---
+
+### 🧠 Design Philosophy
+
+- Scorer is the **decision engine**
+- Uses **weighted scoring system**
+- Provides **transparent and explainable results**
+
+```
+
+Evaluator Output → Scorer → Final Result (Frontend)
+
+```
+
+---
+
+### 📥 Input
+
+```json
+{
+  "clean_url": "https://www.google.com",
+  "ml_prediction": true,
+  "threat_found": false
+}
+```
+
+---
+
+### 🔍 Input Explanation
+
+* `clean_url`:
+
+  * Normalized URL from validator
+
+* `ml_prediction`:
+
+  * Boolean from ML module
+  * `true` → phishing predicted
+  * `false` → safe predicted
+
+* `threat_found`:
+
+  * Boolean from threat intelligence
+  * `true` → domain found in blacklist
+  * `false` → not found
+
+---
+
+### ⚙️ Scoring Logic
+
+#### 🔥 Weights
+
+```text id="sc-weights"
+ML Weight      = 40
+Threat Intel   = 60
+Total          = 100
+```
+
+---
+
+#### 🎯 Contribution Rules
+
+```text id="sc-rules"
+ml_prediction = true  → +40
+ml_prediction = false → +0
+
+threat_found = true   → +60
+threat_found = false  → +0
+```
+
+---
+
+### 🧮 Final Score Calculation
+
+```text id="sc-formula"
+risk_score = ml_score + threat_score
+```
+
+---
+
+### 📊 Score Interpretation
+
+```text id="sc-interpret"
+score == 0        → safe
+0 < score < 60    → suspicious
+score ≥ 60        → phishing
+```
+
+---
+
+### 📤 Output
+
+```json id="sc-output"
+{
+  "status": "success",
+  "clean_url": "https://www.google.com",
+  "risk_score": 40,
+  "prediction": "suspicious",
+  "ml_prediction": true,
+  "threat_found": false
+}
+```
+
+---
+
+### 🚀 Flow Diagram
+
+```mermaid id="sc-diagram"
+flowchart LR
+A[ML Engine] --> C[Evaluator]
+B[Threat Intel] --> C
+
+C --> D[Scorer]
+D --> E[Final JSON Response]
+```
+
+---
+
+### 💯 Key Design Benefits
+
+* ✔ Simple and explainable scoring
+* ✔ Combines ML + real-world threat data
+* ✔ Easy to adjust weights
+* ✔ Clear output for frontend and users
+* ✔ Scalable for future signals
+
+---
+
+### ⚠️ Important Notes
+
+```text id="sc-notes"
+✔ Uses boolean signals only
+✔ No string comparisons required
+✔ Weight distribution can be tuned later
+✔ Output is final user-facing result
+```
+
+---
+
+### 🔮 Future Enhancements
+
+```json id="sc-future"
+{
+  "risk_score": 78,
+  "confidence": 0.92,
+  "explanation": "Detected in blacklist + ML flagged"
+}
+```
+
+* Add confidence score
+* Add explanation layer
+* Dynamic weight adjustment
+* Advanced scoring models
+
+---
+
+### 🔗 Integration
+
+```text id="sc-integration"
+feature_extractor → ml_engine → evaluator → scorer → frontend
+```
+
+---
+
 
 ## 🔹 response_builder.py
 
