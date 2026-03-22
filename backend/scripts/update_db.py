@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 # ---------------------------
 # CONFIG
 # ---------------------------
-OPENPHISH_URL = "https://openphish.com/feed.txt"
+OPENPHISH_URL = "https://raw.githubusercontent.com/openphish/public_feed/main/feed.txt"
 URLHAUS_URL = "https://urlhaus.abuse.ch/downloads/text/"
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

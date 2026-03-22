@@ -2,191 +2,166 @@ from urllib.parse import urlparse
 import re
 
 
-# ---------------------------
-# NEW: Domain Extraction Function
-# ---------------------------
-def extract_domain_from_url(clean_url: str):
+def extract_domain(clean_url: str) -> str:
     """
-    Extract domain for threat intel
-
-    Example:
-    https://www.google.com → google.com
-    http://1.2.3.4:8080 → 1.2.3.4
+    Extract domain for threat intelligence
+    Output: example.com
     """
     parsed = urlparse(clean_url)
     domain = parsed.netloc.lower()
 
-    # remove port
+    # remove port if exists
     if ":" in domain:
         domain = domain.split(":")[0]
 
-    # remove www
+    # remove www (guaranteed present)
     if domain.startswith("www."):
         domain = domain[4:]
 
     return domain
 
 
-# ---------------------------
-# MAIN FEATURE FUNCTION
-# ---------------------------
 def extract_features(clean_url: str):
     """
-    Feature Extraction Engine
+    FINAL FEATURE EXTRACTOR (PIPELINE READY)
 
-    Input:
-        clean_url → validated URL
+    INPUT:
+        clean_url → validated URL (has http/https + www)
 
-    Output:
+    OUTPUT:
         {
-          "features": {...},
-          "domain": "example.com"
+            "features": [fixed ordered list],
+            "domain": "example.com"
         }
     """
 
+    # ---------------------------
+    # BASIC PARSING
+    # ---------------------------
     parsed = urlparse(clean_url)
 
-    # ---------------------------
-    # STEP 1: Remove scheme
-    # ---------------------------
-    url_no_scheme = clean_url.replace("https://", "").replace("http://", "")
+    # remove scheme only
+    url_no_scheme = re.sub(r"^https?://", "", clean_url)
 
-    # ---------------------------
-    # STEP 2: Host handling
-    # ---------------------------
-    host = parsed.netloc  # includes www
-
-    if host.startswith("www."):
-        core_domain = host[4:]
-    else:
-        core_domain = host
+    host = parsed.netloc.lower()
+    core_domain = host[4:]  # safe (www guaranteed)
 
     parts = core_domain.split(".")
     tld = parts[-1]
 
-    # ---------------------------
-    # STEP 3: URL Length
-    # ---------------------------
     URLLength = len(url_no_scheme)
+    DomainLength = len(core_domain)
 
     # ---------------------------
-    # Domain Length
+    # DOMAIN FEATURES
     # ---------------------------
-    DomainLength = len(host)
-
-    # ---------------------------
-    # IP Check
-    # ---------------------------
-    IsDomainIP = 1 if re.match(r"\d+\.\d+\.\d+\.\d+", host) else 0
-
-    # ---------------------------
-    # TLD Length
-    # ---------------------------
+    IsDomainIP = 1 if re.match(r"\d+\.\d+\.\d+\.\d+", core_domain) else 0
     TLDLength = len(tld)
+    NoOfSubDomain = max(len(parts) - 2, 0)
 
     # ---------------------------
-    # Subdomain Count
+    # CHARACTER FEATURES (FULL URL)
     # ---------------------------
-    NoOfSubDomain = len(parts) - 2
-    if NoOfSubDomain < 0:
-        NoOfSubDomain = 0
+    letters = sum(c.isalpha() for c in url_no_scheme)
+    digits = sum(c.isdigit() for c in url_no_scheme)
+
+    LetterRatio = round(letters / URLLength, 3) if URLLength else 0
+    DigitRatio = round(digits / URLLength, 3) if URLLength else 0
 
     # ---------------------------
-    # Letters
+    # SPECIAL CHARACTERS
     # ---------------------------
-    domain_without_tld = ".".join(parts[:-1])
-    NoOfLettersInURL = sum(c.isalpha() for c in domain_without_tld)
+    eq = url_no_scheme.count("=")
+    qm = url_no_scheme.count("?")
+    amp = url_no_scheme.count("&")
 
-    LetterRatioInURL = round(NoOfLettersInURL / URLLength, 3)
-
-    # ---------------------------
-    # Digits
-    # ---------------------------
-    NoOfDegitsInURL = sum(c.isdigit() for c in url_no_scheme)
-    DegitRatioInURL = round(NoOfDegitsInURL / URLLength, 3)
+    special = sum(1 for c in url_no_scheme if not c.isalnum())
+    SpecialRatio = round(special / URLLength, 3) if URLLength else 0
 
     # ---------------------------
-    # Query features
+    # OBFUSCATION
     # ---------------------------
-    NoOfEqualsInURL = url_no_scheme.count("=")
-    NoOfQMarkInURL = url_no_scheme.count("?")
-    NoOfAmpersandInURL = url_no_scheme.count("&")
+    obf = re.findall(r"%[0-9A-Fa-f]{2}", clean_url)
+
+    HasObf = 1 if obf else 0
+    NoOfObf = len(obf)
+    ObfRatio = round(NoOfObf / URLLength, 3) if URLLength else 0
 
     # ---------------------------
-    # Special Characters
-    # ---------------------------
-    NoOfOtherSpecialCharsInURL = sum(
-        1 for c in core_domain if c in [".", "-"]
-    )
-
-    SpacialCharRatioInURL = round(
-        NoOfOtherSpecialCharsInURL / URLLength, 3
-    )
-
-    # ---------------------------
-    # HTTPS
+    # SECURITY
     # ---------------------------
     IsHTTPS = 1 if clean_url.startswith("https://") else 0
 
     # ---------------------------
-    # Obfuscation
-    # ---------------------------
-    obf = re.findall(r"%[0-9A-Fa-f]{2}", clean_url)
-    NoOfObfuscatedChar = len(obf)
-    HasObfuscation = 1 if obf else 0
-
-    ObfuscationRatio = round(
-        NoOfObfuscatedChar / URLLength, 3
-    )
-
-    # ---------------------------
-    # Placeholder Features
-    # ---------------------------
-    CharContinuationRate = 1.0
-    URLCharProb = 0.0
-
-    # ---------------------------
-    # Keyword Features
+    # KEYWORD FEATURES
     # ---------------------------
     lower_url = clean_url.lower()
 
-    Bank = 1 if "bank" in lower_url else 0
-    Pay = 1 if "pay" in lower_url else 0
-    Crypto = 1 if "crypto" in lower_url else 0
+    Bank = 1 if any(k in lower_url for k in ["bank", "sbi", "hdfc", "icici"]) else 0
+    Pay = 1 if any(k in lower_url for k in ["pay", "upi", "payment"]) else 0
+    Crypto = 1 if any(k in lower_url for k in ["crypto", "btc", "bitcoin"]) else 0
+
+    SuspiciousWords = 1 if any(
+        k in lower_url for k in ["login", "verify", "secure", "account", "update"]
+    ) else 0
 
     # ---------------------------
-    # NEW: Extract domain
+    # ADVANCED FEATURES
     # ---------------------------
-    domain = extract_domain_from_url(clean_url)
+    # URL Depth
+    path_parts = [p for p in parsed.path.split("/") if p]
+    URLDepth = len(path_parts)
+
+    # Avg Token Length
+    tokens = re.split(r"[./?=&-]", url_no_scheme)
+    tokens = [t for t in tokens if t]
+
+    AvgTokenLength = round(
+        sum(len(t) for t in tokens) / len(tokens), 3
+    ) if tokens else 0
 
     # ---------------------------
-    # FINAL OUTPUT
+    # FINAL FEATURE VECTOR (LOCKED ORDER)
     # ---------------------------
+    features = [
+        URLLength,
+        DomainLength,
+        IsDomainIP,
+        TLDLength,
+        NoOfSubDomain,
+
+        letters,
+        LetterRatio,
+        digits,
+        DigitRatio,
+
+        eq,
+        qm,
+        amp,
+        special,
+        SpecialRatio,
+
+        HasObf,
+        NoOfObf,
+        ObfRatio,
+
+        IsHTTPS,
+
+        Bank,
+        Pay,
+        Crypto,
+
+        SuspiciousWords,
+        URLDepth,
+        AvgTokenLength
+    ]
+
+    # ---------------------------
+    # DOMAIN FOR THREAT INTEL
+    # ---------------------------
+    domain = extract_domain(clean_url)
+
     return {
-        "features": {
-            "URLLength": URLLength,
-            "DomainLength": DomainLength,
-            "IsDomainIP": IsDomainIP,
-            "CharContinuationRate": CharContinuationRate,
-            "URLCharProb": URLCharProb,
-            "TLDLength": TLDLength,
-            "NoOfSubDomain": NoOfSubDomain,
-            "HasObfuscation": HasObfuscation,
-            "NoOfObfuscatedChar": NoOfObfuscatedChar,
-            "ObfuscationRatio": ObfuscationRatio,
-            "NoOfLettersInURL": NoOfLettersInURL,
-            "LetterRatioInURL": LetterRatioInURL,
-            "NoOfDegitsInURL": NoOfDegitsInURL,
-            "DegitRatioInURL": DegitRatioInURL,
-            "NoOfEqualsInURL": NoOfEqualsInURL,
-            "NoOfQMarkInURL": NoOfQMarkInURL,
-            "NoOfAmpersandInURL": NoOfAmpersandInURL,
-            "NoOfOtherSpecialCharsInURL": NoOfOtherSpecialCharsInURL,
-            "SpacialCharRatioInURL": SpacialCharRatioInURL,
-            "IsHTTPS": IsHTTPS,
-            "Bank": Bank,
-            "Pay": Pay,
-            "Crypto": Crypto,
-        },
+        "features": features,
         "domain": domain
     }
