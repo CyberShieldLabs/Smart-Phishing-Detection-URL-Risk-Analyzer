@@ -207,11 +207,134 @@ Correct Model + Wrong Features = Wrong Predictions ❌
 
 ## 🔹 ml_engine.py
 
-* Load model
-* Predict:
+## 🔹 ml_engine.py (⚙️ Machine Learning Detection Engine)
 
-  * label (0/1)
-  * probability
+### 📌 Purpose
+- Perform phishing detection using a **trained Machine Learning model**
+- Take feature vector directly from `feature_extractor.py`
+- Return a **boolean prediction** for pipeline use
+
+---
+
+### 🧠 Design Philosophy
+
+- ML module focuses **only on prediction**
+- No data transformation (features already aligned)
+- Output is standardized as **boolean signal**
+
+
+
+
+---
+
+### 🔍 Input Explanation
+
+* `features`:
+
+  * Direct output from `feature_extractor.py`
+  * Already aligned with training dataset
+  * No additional preprocessing required
+
+---
+
+### ⚙️ Internal Workflow
+
+```text id="ml-flow-final"
+✔ Load trained ML model (.pkl)
+✔ Take feature values from JSON
+✔ Pass directly to model
+✔ Run prediction
+✔ Convert output → boolean
+```
+
+---
+
+### 📤 Output
+
+```json id="ml-output-final"
+{
+  "ml_prediction": true
+}
+```
+
+---
+
+### 🔍 Output Explanation
+
+* `ml_prediction`:
+
+  * Boolean result from model
+  * `true` → phishing predicted
+  * `false` → safe predicted
+
+---
+
+### 🔄 Conversion Rule
+
+```text id="ml-convert-final"
+Model Output → Final Output
+
+1 → True  
+0 → False
+```
+
+---
+
+### 🚀 Flow Diagram
+
+```mermaid id="ml-diagram-final"
+flowchart LR
+A[Feature Extractor] --> B[ML Engine]
+B --> C[Model Prediction]
+C --> D[Boolean Output]
+```
+
+---
+
+### 💯 Key Design Benefits
+
+* ✔ No unnecessary preprocessing
+* ✔ Faster execution
+* ✔ Clean and minimal design
+* ✔ Direct integration with evaluator
+* ✔ Reduced chances of feature mismatch
+
+---
+
+### ⚠️ Important Notes
+
+```text id="ml-notes-final"
+✔ Feature order MUST match training dataset  
+✔ Model file (.pkl) must be present in /models  
+✔ No business logic inside ML module  
+✔ Only prediction + conversion
+```
+
+---
+
+### 🔮 Future Enhancements
+
+```json id="ml-future-final"
+{
+  "ml_prediction": true,
+  "probability": 0.87
+}
+```
+
+* Add confidence score
+* Support multiple models
+* Ensemble methods
+
+---
+
+### 🔗 Integration
+
+```text id="ml-integration-final"
+feature_extractor → ml_engine → evaluator → scorer
+```
+
+
+
 
 ---
 
@@ -322,16 +445,259 @@ Output → Malicious / Safe
 * Enhance ML model predictions
 * Detect already known malicious domains instantly
 
+---
+
+### 1)🔹 update_db.py (⚙️ Threat Database Builder)
+
+### 📌 Purpose
+- Automatically build and maintain a **local threat intelligence database**
+- Collect data from **open-source phishing/malware feeds**
+- Prepare a **clean, fast, and ready-to-use domain list** for the system
 
 ---
 
-## 🔹 evaluator.py
+### 🎯 Key Responsibilities
 
-* Combine:
+- Download threat feeds (OpenPhish, URLhaus)
+- Extract **only domain names** from URLs
+- Normalize data (convert to lowercase)
+- Remove duplicates
+- Generate a clean database file
 
-  * ML result
-  * Threat intelligence result
-* Decide final risk
+---
+
+### 📁 Output
+
+```
+
+backend/data/threat_db.txt
+
+```
+
+Example:
+```
+
+phishing-site.com
+fake-login.net
+malware-download.xyz
+
+````
+
+---
+
+### 🔄 Working Flow
+
+```mermaid
+flowchart LR
+A[Download Feeds] --> B[Extract Domains]
+B --> C[Normalize (lowercase)]
+C --> D[Remove Duplicates]
+D --> E[Write temp file]
+E --> F[Replace final DB safely]
+````
+
+---
+
+### ⚙️ File Handling Strategy
+
+* Uses **temporary file + replace**
+* Prevents corruption during updates
+
+```
+threat_db_temp.txt → threat_db.txt
+```
+
+✔ No manual deletion
+✔ No partial writes
+✔ Always safe
+
+---
+
+### 🌍 Cross-Platform Support
+
+* Works on **Linux, Windows, macOS**
+* Uses only **Python standard libraries**
+* No OS-specific commands (no `wget`, `mv`, etc.)
+
+---
+
+### 📦 Auto Setup
+
+* Automatically creates `data/` folder if missing
+* Automatically creates/overwrites database file
+* No manual setup required
+
+---
+
+### ⏱️ How to Run
+
+```bash
+python scripts/update_db.py
+```
+
+---
+
+
+### ⚠️ Important Notes
+
+* Only **domain names** are stored (not full URLs)
+* Domains are **case-insensitive → stored in lowercase**
+* Database is **rebuilt completely on each run**
+* Designed for **fast lookup using Python set()**
+
+---
+
+### 🔗 Integration
+
+```
+update_db.py → builds DB
+threat_intel.py → uses DB
+```
+
+---
+
+### 🎯 Goal
+
+* Provide **real-time-like threat detection without APIs**
+* Ensure **fast, reliable, offline domain checking**
+* Enhance overall system security alongside ML model
+
+
+
+---
+## 🔹 evaluator.py (⚙️ Decision Data Combiner)
+
+### 📌 Purpose
+- Combine outputs from:
+  - Machine Learning module (ML)
+  - Threat Intelligence module
+- Prepare a **clean, unified signal format** for the scoring engine
+
+---
+
+### 🧠 Design Philosophy
+
+- Evaluator is **NOT responsible for decision making**
+- It only **standardizes and combines signals**
+- Keeps architecture **modular and scalable**
+
+```
+
+ML + Threat Intel → Evaluator → Scorer
+
+````
+
+---
+
+### 📥 Input
+
+```json
+{
+  "ml_prediction": true,
+  "threat_intel": {
+    "is_malicious": false
+  }
+}
+````
+
+---
+
+### 🔍 Input Explanation
+
+* `ml_prediction`:
+
+  * Boolean value from ML model
+  * `true` → phishing predicted
+  * `false` → safe predicted
+
+* `threat_intel.is_malicious`:
+
+  * Boolean value from threat database
+  * `true` → domain found in blacklist
+  * `false` → not found
+
+---
+
+### 📤 Output (to scorer.py)
+
+```json
+{
+  "ml_prediction": true,
+  "threat_found": false
+}
+```
+
+---
+
+### 🔍 Output Explanation
+
+* `ml_prediction`:
+
+  * Direct ML signal (boolean)
+
+* `threat_found`:
+
+  * Renamed from `is_malicious`
+  * Indicates presence in threat database
+
+---
+
+### ⚙️ Internal Logic
+
+```text
+✔ Extract ml_prediction (boolean)
+✔ Extract threat_intel.is_malicious
+✔ Convert to:
+    threat_found = is_malicious
+✔ Return combined JSON
+```
+
+---
+
+### 🚀 Flow Diagram
+
+```mermaid
+flowchart LR
+A[ML Engine] --> C[Evaluator]
+B[Threat Intel] --> C
+
+C --> D[Combined Boolean Signals]
+```
+
+---
+
+### 💯 Key Design Benefits
+
+* ✔ Clean separation of concerns
+* ✔ No duplicate logic
+* ✔ Easy to extend (add more signals later)
+* ✔ Optimized for scoring calculations
+* ✔ Reduces complexity in pipeline
+
+---
+
+### 🔮 Future Extensions
+
+Evaluator can later include:
+
+```json
+{
+  "ml_prediction": true,
+  "threat_found": true,
+  "heuristic_flag": false,
+  "reputation_score": 0.7
+}
+```
+
+---
+
+### ⚠️ Important Notes
+
+* ML module must convert output to **boolean (0 → False, 1 → True)**
+* Evaluator assumes **valid structured input**
+* No scoring or decision logic should be added here
+
+
 
 ---
 

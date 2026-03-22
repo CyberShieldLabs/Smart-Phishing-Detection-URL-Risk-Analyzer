@@ -2,30 +2,60 @@ from urllib.parse import urlparse
 import re
 
 
+# ---------------------------
+# NEW: Domain Extraction Function
+# ---------------------------
+def extract_domain_from_url(clean_url: str):
+    """
+    Extract domain for threat intel
+
+    Example:
+    https://www.google.com → google.com
+    http://1.2.3.4:8080 → 1.2.3.4
+    """
+    parsed = urlparse(clean_url)
+    domain = parsed.netloc.lower()
+
+    # remove port
+    if ":" in domain:
+        domain = domain.split(":")[0]
+
+    # remove www
+    if domain.startswith("www."):
+        domain = domain[4:]
+
+    return domain
+
+
+# ---------------------------
+# MAIN FEATURE FUNCTION
+# ---------------------------
 def extract_features(clean_url: str):
     """
-    Feature Extraction Engine (FINAL)
+    Feature Extraction Engine
 
     Input:
-        clean_url → validated URL (http/https, normalized)
+        clean_url → validated URL
 
     Output:
-        dict → feature vector (exact order for ML model)
+        {
+          "features": {...},
+          "domain": "example.com"
+        }
     """
 
     parsed = urlparse(clean_url)
 
     # ---------------------------
-    # 🔥 STEP 1: Remove scheme
+    # STEP 1: Remove scheme
     # ---------------------------
     url_no_scheme = clean_url.replace("https://", "").replace("http://", "")
 
     # ---------------------------
-    # 🔥 STEP 2: Host handling
+    # STEP 2: Host handling
     # ---------------------------
     host = parsed.netloc  # includes www
 
-    # For calculations (remove www)
     if host.startswith("www."):
         core_domain = host[4:]
     else:
@@ -35,12 +65,12 @@ def extract_features(clean_url: str):
     tld = parts[-1]
 
     # ---------------------------
-    # 🔥 STEP 3: URL Length
+    # STEP 3: URL Length
     # ---------------------------
     URLLength = len(url_no_scheme)
 
     # ---------------------------
-    # Domain Length (WITH www)
+    # Domain Length
     # ---------------------------
     DomainLength = len(host)
 
@@ -62,11 +92,9 @@ def extract_features(clean_url: str):
         NoOfSubDomain = 0
 
     # ---------------------------
-    # 🔥 STEP 4: Letters (IMPORTANT FIX)
-    # Remove ONLY last TLD
+    # Letters
     # ---------------------------
     domain_without_tld = ".".join(parts[:-1])
-
     NoOfLettersInURL = sum(c.isalpha() for c in domain_without_tld)
 
     LetterRatioInURL = round(NoOfLettersInURL / URLLength, 3)
@@ -75,19 +103,17 @@ def extract_features(clean_url: str):
     # Digits
     # ---------------------------
     NoOfDegitsInURL = sum(c.isdigit() for c in url_no_scheme)
-
     DegitRatioInURL = round(NoOfDegitsInURL / URLLength, 3)
 
     # ---------------------------
-    # Query-based features
+    # Query features
     # ---------------------------
     NoOfEqualsInURL = url_no_scheme.count("=")
     NoOfQMarkInURL = url_no_scheme.count("?")
     NoOfAmpersandInURL = url_no_scheme.count("&")
 
     # ---------------------------
-    # 🔥 STEP 5: Special Characters (IMPORTANT FIX)
-    # Count ONLY in core domain (no www)
+    # Special Characters
     # ---------------------------
     NoOfOtherSpecialCharsInURL = sum(
         1 for c in core_domain if c in [".", "-"]
@@ -114,13 +140,13 @@ def extract_features(clean_url: str):
     )
 
     # ---------------------------
-    # Placeholder Features (dataset-specific)
+    # Placeholder Features
     # ---------------------------
-    CharContinuationRate = 1.0  # keep constant for now
-    URLCharProb = 0.0           # advanced feature (skip for now)
+    CharContinuationRate = 1.0
+    URLCharProb = 0.0
 
     # ---------------------------
-    # Keyword-based features
+    # Keyword Features
     # ---------------------------
     lower_url = clean_url.lower()
 
@@ -129,30 +155,38 @@ def extract_features(clean_url: str):
     Crypto = 1 if "crypto" in lower_url else 0
 
     # ---------------------------
-    # FINAL FEATURE DICT (ORDER MATTERS)
+    # NEW: Extract domain
+    # ---------------------------
+    domain = extract_domain_from_url(clean_url)
+
+    # ---------------------------
+    # FINAL OUTPUT
     # ---------------------------
     return {
-        "URLLength": URLLength,
-        "DomainLength": DomainLength,
-        "IsDomainIP": IsDomainIP,
-        "CharContinuationRate": CharContinuationRate,
-        "URLCharProb": URLCharProb,
-        "TLDLength": TLDLength,
-        "NoOfSubDomain": NoOfSubDomain,
-        "HasObfuscation": HasObfuscation,
-        "NoOfObfuscatedChar": NoOfObfuscatedChar,
-        "ObfuscationRatio": ObfuscationRatio,
-        "NoOfLettersInURL": NoOfLettersInURL,
-        "LetterRatioInURL": LetterRatioInURL,
-        "NoOfDegitsInURL": NoOfDegitsInURL,
-        "DegitRatioInURL": DegitRatioInURL,
-        "NoOfEqualsInURL": NoOfEqualsInURL,
-        "NoOfQMarkInURL": NoOfQMarkInURL,
-        "NoOfAmpersandInURL": NoOfAmpersandInURL,
-        "NoOfOtherSpecialCharsInURL": NoOfOtherSpecialCharsInURL,
-        "SpacialCharRatioInURL": SpacialCharRatioInURL,
-        "IsHTTPS": IsHTTPS,
-        "Bank": Bank,
-        "Pay": Pay,
-        "Crypto": Crypto,
+        "features": {
+            "URLLength": URLLength,
+            "DomainLength": DomainLength,
+            "IsDomainIP": IsDomainIP,
+            "CharContinuationRate": CharContinuationRate,
+            "URLCharProb": URLCharProb,
+            "TLDLength": TLDLength,
+            "NoOfSubDomain": NoOfSubDomain,
+            "HasObfuscation": HasObfuscation,
+            "NoOfObfuscatedChar": NoOfObfuscatedChar,
+            "ObfuscationRatio": ObfuscationRatio,
+            "NoOfLettersInURL": NoOfLettersInURL,
+            "LetterRatioInURL": LetterRatioInURL,
+            "NoOfDegitsInURL": NoOfDegitsInURL,
+            "DegitRatioInURL": DegitRatioInURL,
+            "NoOfEqualsInURL": NoOfEqualsInURL,
+            "NoOfQMarkInURL": NoOfQMarkInURL,
+            "NoOfAmpersandInURL": NoOfAmpersandInURL,
+            "NoOfOtherSpecialCharsInURL": NoOfOtherSpecialCharsInURL,
+            "SpacialCharRatioInURL": SpacialCharRatioInURL,
+            "IsHTTPS": IsHTTPS,
+            "Bank": Bank,
+            "Pay": Pay,
+            "Crypto": Crypto,
+        },
+        "domain": domain
     }
