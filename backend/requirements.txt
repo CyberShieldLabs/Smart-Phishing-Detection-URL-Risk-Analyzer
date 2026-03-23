@@ -1,0 +1,10 @@
+Backend Library
+
+fastapl
+uvicorn
+pydantic
+python-dotenv
+num.py
+pandas
+scikit-learn
+joblib
