@@ -1,0 +1,180 @@
+# Backend — Fixes & Updates Documentation
+
+---
+
+## Overview
+
+During the initial frontend-backend integration review, several issues were identified in the backend codebase. This document records what was found, what was fixed, and what was added so the full team has a clear record of changes made.
+
+---
+
+## 1. `requirements.txt` — Typos & Incorrect Packages Fixed
+
+**What was wrong:**
+
+| Incorrect Entry | Issue |
+|---|---|
+| `fastapl` | Typo — meant `fastapi` but irrelevant since project uses Flask |
+| `num.py` | Typo — correct package name is `numpy` |
+| `uvicorn` | ASGI server for FastAPI — not needed in a Flask project |
+| `pydantic` | Data validation library for FastAPI — not needed in a Flask project |
+
+**What was fixed:**
+
+Removed all incorrect and irrelevant packages. Added missing packages required for the full pipeline to run.
+
+**Final `requirements.txt`:**
+```
+flask
+flask-cors
+python-dotenv
+numpy
+pandas
+scikit-learn
+joblib
+requests
+```
+
+`flask-cors` and `requests` were added as they are required for CORS handling and threat intelligence API calls respectively.
+
+---
+
+## 2. `app.py` — CORS Added & Route Renamed 
+
+yeat to make changes to the main Flask app file `app.py` which defines the server and API routes.
+this will be descussed and done in the next commit, but here is a summary of what was wrong and what was fixed:
+
+**What was wrong:**
+
+- No CORS configuration — browser blocks all frontend requests without this
+- Route was named `/predict` which only describes the ML step, not the full pipeline
+
+**What was fixed:**
+
+- Added `flask-cors` and configured it to allow requests from the frontend dev server at `http://localhost:5173`
+- Renamed route from `/predict` to `/analyze` to accurately describe the full analysis pipeline
+- Renamed handler function from `predict()` to `analyze()` to match
+
+**Before:**
+```python
+from flask import Flask, request, jsonify
+from modules.pipeline import process_url
+app = Flask(__name__)
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    data = request.get_json()
+    result = process_url(data)
+    return jsonify(result)
+```
+
+**After:**
+```python
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from modules.pipeline import process_url
+app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173"])
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    data = request.get_json()
+    result = process_url(data)
+    return jsonify(result)
+```
+
+> **Note:** When deploying to production, update the CORS origin from `http://localhost:5173` to the actual deployed frontend URL.
+
+---
+
+## 3. `config/settings.py` — Created from Scratch
+
+**What was wrong:**
+
+File existed in the folder structure but had no content.
+
+**What was added:**
+
+- All API keys loaded from `.env` via `python-dotenv`
+- API base URLs for VirusTotal, PhishTank, and OpenPhish
+- Risk score thresholds matching the frontend constants
+- ML model file paths
+- Threat database path
+- Flask debug and port settings
+
+All sensitive values (API keys) are read from environment variables — nothing is hardcoded.
+
+---
+
+## 4. `modules/response_builder.py` — Created from Scratch
+
+**What was wrong:**
+
+File existed in the folder structure but had no content. This is a critical file — it defines the exact JSON structure returned to the frontend.
+
+**What was added:**
+
+Two functions:
+
+- `build_response()` — assembles the full unified JSON result from all module outputs
+- `build_error_response()` — returns a standardized error JSON when analysis fails at any stage
+
+The JSON structure produced by `build_response()` is the agreed contract between frontend and backend. The frontend is built to consume exactly this structure. Any changes to field names or nesting must be communicated to the frontend team immediately.
+
+---
+
+## 5. `.env` and `.env.example` — Created
+
+**What was wrong:**
+
+No environment variable files existed. API keys and config values had no defined home.
+
+**What was added:**
+
+- `.env` — actual environment variables file. Added to `.gitignore`. Never commit this.
+- `.env.example` — template with empty values. Safe to commit. Tells teammates what variables they need to set up.
+
+---
+
+## 6. API Contract — Agreed Request & Response Format
+
+This is the finalized contract between frontend and backend.
+
+**Request:**
+```
+POST http://localhost:5000/analyze
+Content-Type: application/json
+
+{
+  "url": "http://suspicious-site.xyz"
+}
+```
+
+**Response:**
+```json
+{
+  "url": "http://suspicious-site.xyz",
+  "timestamp": "2026-03-26T10:30:00Z",
+  "validation": { "is_valid": true, "protocol": "http", "domain": "suspicious-site.xyz" },
+  "features": { "url_length": 30, "hyphen_count": 1, "suspicious_keywords": [], "tld": ".xyz", "has_ip_address": false, "has_at_symbol": false, "subdomain_count": 0, "is_https": false, "special_char_count": 1 },
+  "ml_prediction": { "score": 72, "label": "phishing", "confidence": "high" },
+  "threat_intelligence": {
+    "virustotal": { "found": false, "malicious_count": 0, "total_engines": 90 },
+    "phishtank": { "found": false, "verified": false },
+    "openphish": { "found": false }
+  },
+  "risk": { "score": 72, "level": "Malicious", "reasons": ["Unusual TLD (.xyz)", "Non-HTTPS connection"] }
+}
+```
+
+**Error Response:**
+```json
+{
+  "url": "http://suspicious-site.xyz",
+  "timestamp": "2026-03-26T10:30:00Z",
+  "error": true,
+  "message": "Analysis failed at feature extraction stage."
+}
+```
+
+---
