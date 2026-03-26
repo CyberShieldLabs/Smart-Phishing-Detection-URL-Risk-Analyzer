@@ -1,10 +1,19 @@
 Backend Library
 
-fastapl
-uvicorn
-pydantic
+# fastapl
+# uvicorn
+# pydantic
+# python-dotenv
+# num.py
+# pandas
+# scikit-learn
+# joblib
+
+flask
+flask-cors
 python-dotenv
-num.py
+numpy
 pandas
 scikit-learn
 joblib
+requests
