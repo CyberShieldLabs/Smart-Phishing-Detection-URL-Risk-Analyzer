@@ -1,5 +1,3 @@
-Backend Library
-
 # fastapl
 # uvicorn
 # pydantic
