@@ -1,10 +1,17 @@
 import React from 'react'
-
+import { BrowserRouter as Router, Link, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import Error404 from './pages/Error404';
+import AppRouts from './routes/AppRouts';
 function App() {
   return (
-    <div>
-      <h1 className='text-4xl text-red-600 font-bold'>Smart phishing detection and url analyser</h1>
-    </div>
+    <Router>
+      <div className='w-full min-h-[100vh] bg-amber-100'>
+        <div>
+          <AppRouts />
+        </div>
+      </div>
+    </Router>
   )
 }
 
