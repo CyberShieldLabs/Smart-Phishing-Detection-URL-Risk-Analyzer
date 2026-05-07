@@ -123,30 +123,36 @@ Feature extractor serves **dual purpose**:
 ### 📊 Selected Features (Exact Order)
 
 ```
+        URLLength,
+        DomainLength,
+        IsDomainIP,
+        TLDLength,
+        NoOfSubDomain,
 
-URLLength
-DomainLength
-IsDomainIP
-CharContinuationRate
-URLCharProb
-TLDLength
-NoOfSubDomain
-HasObfuscation
-NoOfObfuscatedChar
-ObfuscationRatio
-NoOfLettersInURL
-LetterRatioInURL
-NoOfDegitsInURL
-DegitRatioInURL
-NoOfEqualsInURL
-NoOfQMarkInURL
-NoOfAmpersandInURL
-NoOfOtherSpecialCharsInURL
-SpacialCharRatioInURL
-IsHTTPS
-Bank
-Pay
-Crypto
+        letters,
+        LetterRatio,
+        digits,
+        DigitRatio,
+
+        eq,
+        qm,
+        amp,
+        special,
+        SpecialRatio,
+
+        HasObf,
+        NoOfObf,
+        ObfRatio,
+
+        IsHTTPS,
+
+        Bank,
+        Pay,
+        Crypto,
+
+        SuspiciousWords,
+        URLDepth,
+        AvgTokenLength
 
 ```
 
