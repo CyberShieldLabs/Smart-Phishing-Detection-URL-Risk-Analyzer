@@ -426,5 +426,3 @@ Remove-Job $jobs
 - Each test is independent and can be run separately
 
 ---
-
-**Good luck with your testing!** 🎯
